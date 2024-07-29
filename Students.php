@@ -8,121 +8,124 @@
 </head>
 <body>
 
-    <?php
-      
-      $students = [];
+  <h1>Student Management System</h1>
 
-      function addStudent($name, $subjects) {
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <h2>Add Student</h2>
+        <form id="addStudentForm">
+          <div class="mb-3">
+            <label for="studentName" class="form-label">Student Name:</label>
+            <input type="text" class="form-control" id="studentName" name="studentName" required>
+          </div>
+          <div class="mb-3">
+            <label for="subjects" class="form-label">Subjects (Subject Name: Grade):</label>
+            <textarea id="subjects" class="form-control" name="subjects" rows="3" required></textarea>
+            <small class="text-muted">Separate subject and grade with a colon (':'). Add multiple subjects on separate lines.</small>
+          </div>
+          <button type="submit" class="btn btn-primary" id="addStudentBtn">Add Student</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <h2>Update Student Grade</h2>
+        <form id="updateStudentGradeForm">
+          <div class="mb-3">
+            <label for="studentNameUpdate" class="form-label">Student Name:</label>
+            <input type="text" class="form-control" id="studentNameUpdate" name="studentNameUpdate" required>
+          </div>
+          <div class="mb-3">
+            <label for="subjectUpdate" class="form-label">Subject:</label>
+            <input type="text" class="form-control" id="subjectUpdate" name="subjectUpdate" required>
+          </div>
+          <div class="mb-3">
+            <label for="newGrade" class="form-label">New Grade:</label>
+            <input type="number" class="form-control" id="newGrade" name="newGrade" min="0" max="100" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="updateStudentGradeBtn">Update Grade</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <h2>Remove Student</h2>
+        <form id="removeStudentForm">
+          <div class="mb-3">
+            <label for="studentNameRemove" class="form-label">Student Name:</label>
+            <input type="text" class="form-control" id="studentNameRemove" name="studentNameRemove" required>
+          </div>
+          <button type="submit" class="btn btn-danger" id="removeStudentBtn">Remove Student</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="studentList">
+      <?php
+        // PHP functions here
+        $students = [];
+
+        function addStudent($name, $subjects) {
           global $students;
-
-          
-          if (array_key_exists($name, $students)) {
-              echo "Student $name already exists.\n";
-              return;
+          $subjectLines = explode("\n", $subjects);
+          // ... function logic
+          foreach ($subjectLines as $line) {
+            // Split the subject and grade by colon
+            $parts = explode(":", $line);
+            $subject = trim($parts[0]);
+            $grade = trim($parts[1]);
+            // Add the subject and grade to the student's subjects array
+            $students[$name][$subject] = $grade;
           }
+        }
 
-          
-          if (!is_array($subjects) || array_keys($subjects) !== array_values(array_map('strval', array_keys($subjects)))) {
-              echo "Invalid subjects format. Subjects should be an associative array with subject names as keys and grades as values.\n";
-              return;
-          }
-
-          $students[$name] = $subjects;
-          echo "Student $name added successfully.\n";
-      }
-
-      function updateStudentGrades($name, $subject, $newGrade) {
+        function updateStudentGrades($name, $subject, $newGrade) {
           global $students;
-
           
-          if (!array_key_exists($name, $students)) {
-              echo "Student $name not found.\n";
-              return;
+          if (isset($students[$name])) {
+            // Update the grade for the specified subject
+            $students[$name][$subject] = $newGrade;
           }
+        }
 
-         
-          if (!array_key_exists($subject, $students[$name])) {
-              echo "Subject $subject not found for student $name.\n";
-              return;
-          }
-
-          $students[$name][$subject] = $newGrade;
-          echo "Grade for subject $subject of student $name updated successfully.\n";
-      }
-
-      function removeStudent($name) {
+        function removeStudent($name) {
           global $students;
-
-         
-          if (!array_key_exists($name, $students)) {
-              echo "Student $name not found.\n";
-              return;
-          }
-
-          unset($students[$name]);
-          echo "Student $name removed successfully.\n";
-      }
-
-      function displayStudents() {
-          global $students;
-
-          if (empty($students)) {
-              echo "No students found.\n";
-              return;
-          }
-
           
-          echo '<table class="table table-striped table-bordered">';
-          echo '<thead><tr><th>Name</th>';
-
-      
-          $uniqueSubjects = [];
-          foreach ($students as $student => $subjects) {
-              $uniqueSubjects = array_merge($uniqueSubjects, array_keys($subjects));
+          if (isset($students[$name])) {
+            // Remove the student from the array
+            unset($students[$name]);
           }
-          $uniqueSubjects = array_unique($uniqueSubjects);
+        }
 
-     
-          foreach ($uniqueSubjects as $subject) {
-              echo "<th>$subject</th>";
-          }
-
-          echo '</tr></thead>';
-          echo '<tbody>';
-
-          foreach ($students as $name => $grades) {
-              echo '<tr><td>' . $name . '</td>';
-
-              foreach ($uniqueSubjects as $subject) {
-                  if (array_key_exists($subject, $grades)) {
-                      echo "<td>" . $grades[$subject] . "</td>";
-                  } else {
-                      echo "<td>-</td>";
-                  }
+        function displayStudents() {
+          global $students;
+          
+          if (count($students) > 0) {
+            echo '<table class="table">';
+            echo '<thead><tr><th>Student Name</th><th>Subject</th><th>Grade</th></tr></thead>';
+            echo '<tbody>';
+            // Iterate through each student
+            foreach ($students as $name => $subjects) {
+              // Iterate through each subject and grade
+              foreach ($subjects as $subject => $grade) {
+                echo "<tr><td>$name</td><td>$subject</td><td>$grade</td></tr>";
               }
-
-              echo '</tr>';
+            }
+            echo '</tbody>';
+            echo '</table>';
+          } else {
+            echo "<p>No students found.</p>";
           }
+        }
 
-          echo '</tbody></table>';
-      }
+        // Sample data (remove later)
+        addStudent("John Orland", "Math: 90\nEnglish: 85\nScience: 92");
+        addStudent("Jeff", "Math: 88\nHistory: 79\nScience: 95");
+        addStudent("Nicole", "Math: 93\nEnglish: 87\nLiterature: 91");
 
-      // Test functions
-      addStudent("John Orland", ["Math" => 90, "English" => 85, "Science" => 92]);
-      addStudent("Jeff", ["Math" => 88, "History" => 79, "Science" => 95]);
-      addStudent("Nicole", ["Math" => 93, "English" => 87, "Literature" => 91]);
-
-      displayStudents();
-
-      updateStudentGrades("John Orland", "Math", 95);
-
-      displayStudents();
-
-      removeStudent("Nicole");
-
-      displayStudents();
-  
- 
-  ?>
+        displayStudents();
+      ?>
+    </div>
+  </div>
 </body>
 </html>
